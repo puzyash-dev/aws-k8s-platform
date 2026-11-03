@@ -1,0 +1,15 @@
+{
+  "name": "aws-k8s-app",
+  "version": "1.0.0",
+  "description": "Backend API for aws-k8s-platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13"
+  }
+}
+
