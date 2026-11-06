@@ -5,9 +5,8 @@ metadata:
   labels:
     {{- include "app-chart.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  
   selector:
     matchLabels:
       {{- include "app-chart.selectorLabels" . | nindent 6 }}
@@ -27,7 +26,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "app-chart.serviceAccountName" . }}
+      
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
