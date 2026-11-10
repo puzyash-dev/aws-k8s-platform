@@ -4,13 +4,13 @@ Production-ready infrastructure and application deployment setup using Terraform
 
 ## Architecture
 [ AWS VPC ] 
-  ├── Public Subnets (NAT Gateway, AWS Load Balancer)
+  ├── Public Subnets (NAT Gateway, AWS ALB Ingress)
   └── Private Subnets
         └── EKS Cluster (Kubernetes)
               ├── Node Group (t3.medium)
               └── Pods (Node.js API + In-cluster PostgreSQL + In-cluster Redis)
 
-*(Note: For strict production, in-cluster DB/Redis should be replaced with AWS RDS & ElastiCache).*
+*(Note: Ingress uses AWS ALB Controller for production-grade traffic routing).*
 
 ## Prerequisites & AWS Setup
 1. Install tools: Terraform >= 1.0, AWS CLI, Helm v3, Docker.
@@ -18,16 +18,16 @@ Production-ready infrastructure and application deployment setup using Terraform
 
 ## Project Structure
 - app/ - Node.js Express backend API with PostgreSQL and Redis integration.
-- helm/app-chart/ - Helm chart for deploying the application stack (with LoadBalancer service).
+- helm/app-chart/ - Helm chart for deploying application, DB, Redis, and ALB Ingress.
 - terraform/ - Terraform configuration for AWS VPC, EKS cluster, and cost management.
-- .github/workflows/ - CI pipeline for automated Terraform and Helm validation.
+- .github/workflows/ - CI/CD pipelines for automated validation and AWS ECR image publishing.
 
 ## Configuration (.env.example)
 Copy app/.env.example to app/.env and adjust variables if running locally.
 
-## Quick Start (Dry-Run / Local Check)
-1. Validate Terraform plan: cd terraform && terraform init && terraform plan
-2. Test Helm chart rendering: helm template my-release helm/app-chart
+## CI/CD Automation
+- **CI Pipeline:** Automatically validates Terraform syntax and Helm charts on every push.
+- **CD Pipeline:** Automatically builds the Docker image and pushes it to AWS ECR on every push to `main`.
 
 ## Cloud Deployment Guide (AWS EKS)
 
@@ -39,17 +39,14 @@ Copy app/.env.example to app/.env and adjust variables if running locally.
 2. Configure kubectl to connect to your EKS cluster: 
    aws eks update-kubeconfig --region ap-northeast-1 --name aws-k8s-platform-dev-cluster
 
-3. Build and Push Application Image to AWS ECR:
-   - Create ECR repository: aws ecr create-repository --repository-name aws-k8s-app
-   - Authenticate Docker to ECR: aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.ap-northeast-1.amazonaws.com
-   - Build image: docker build -t aws-k8s-app ./app
-   - Tag & Push: docker tag aws-k8s-app:latest <your-account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/aws-k8s-app:latest && docker push <your-account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/aws-k8s-app:latest
+3. Push Docker Image (Handled automatically by GitHub Actions CD pipeline after `git push`, or manually):
+   cd app && docker build -t <account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/aws-k8s-app:latest . && docker push ...
 
-4. Update image repository in helm/app-chart/values.yaml to point to your ECR URL, then deploy with Helm: 
+4. Deploy Application (Helm): 
    helm install my-app helm/app-chart
 
-5. Get the external app URL (LoadBalancer hostname):
-   kubectl get svc my-app-app-chart
+5. Get the external Ingress URL (ALB address):
+   kubectl get ingress
 
 6. Cleanup / Destroy (Save your money!): 
    cd terraform && terraform destroy
