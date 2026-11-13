@@ -1,6 +1,6 @@
 # AWS K8s Platform
 
-![api response](docs/api-response.png)
+<img src="docs/api-response-v2.png" width="1000" alt="API Response">
 
 Production-ready infrastructure and application deployment setup using Terraform, Kubernetes (EKS), Helm, and Node.js.
 
