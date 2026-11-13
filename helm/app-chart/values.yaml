@@ -1,12 +1,12 @@
 replicaCount: 1
 
 image:
-  repository: aws-k8s-app
+  repository: 717139594391.dkr.ecr.ap-northeast-1.amazonaws.com/aws-k8s-app
   pullPolicy: IfNotPresent
   tag: "latest"
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
   targetPort: 3000
 
